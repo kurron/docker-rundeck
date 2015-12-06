@@ -1,17 +1,27 @@
-FROM kurron/docker-jetbrains-base:latest
+# administrator account: admin/admin
+# user account: user/user
+
+FROM kurron/docker-oracle-jdk-8:latest
 
 MAINTAINER Ron Kurr <kurr@kurron.org>
 
-LABEL org.kurron.ide.name="PyCharm" org.kurron.ide.version=5.0.1 
+LABEL org.kurron.product.name="Rundeck" org.kurron.product.version=2.6.2
 
-ADD http://download.jetbrains.com/python/pycharm-professional-5.0.1.tar.gz /tmp/ide.tar.gz
+RUN mkdir -p /opt/rundeck
 
-RUN mkdir -p /opt/ide && \
-    tar zxvf /tmp/ide.tar.gz --strip-components=1 -C /opt/ide && \
-    rm /tmp/ide.tar.gz
+ADD http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.6.2.jar /opt/rundeck/rundeck.jar
 
-ENV PYCHARM_JDK=/usr/lib/jvm/oracle-jdk-8
+EXPOSE 4440
+EXPOSE 4443
 
-USER developer:developer
-WORKDIR /home/developer
-ENTRYPOINT ["/opt/ide/bin/pycharm.sh"]
+VOLUME ["/opt/rundeck/server/data"]
+VOLUME ["/opt/rundeck/server/config"]
+VOLUME ["/opt/rundeck/etc"]
+VOLUME ["/opt/rundeck/projects"]
+
+#VOLUME ["/etc/rundeck", "/var/rundeck", "/var/lib/rundeck", "/var/lib/mysql", "/var/log/rundeck"]
+
+ENV RDECK_BASE=/opt/rundeck
+
+WORKDIR /opt/rundeck
+ENTRYPOINT ["java", "-Drundeck.jetty.connector.forwarded=true", "-jar", "rundeck.jar"]
